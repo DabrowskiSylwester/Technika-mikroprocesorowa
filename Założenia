@@ -1,0 +1,17 @@
+Założenia naszego projektu (dodaj swoje, albo skomentuj po swojemu-możemy oznaczać inicjałami co od kogo pochodzi):
+
+Cele:
+  sygnały
+    prostokątny (z wyborem częstotliwości, wypełnienia)
+    trójkątny
+    sinusoidalny
+
+Wizja ogólna:
+
+SD: Ja bym to widział jako trzy nieskończone pętle. Program będzie się kręcił w jednej oczekując na przerwanie - jeden przycisk (S0), który włączy "tryb ustawiania" - czwarty blok programu. 
+    W tym menu będzie można wybrać rodzaj sygnału (S1) oraz częstotliwość (S2-S3). Wyjście może użyć S(0), którego wciśnięcie wykona skok do odpowiedniej pętli.
+
+Częstotliwość:
+SD: Można by wykorzystać timery. Zakres częstotliwości mógłby być np. do 1kHz [albo np z mnożnikiem 10, czyli 1=10;2=20,itd.] - wtedy możemy wykorzystać cztery wyświetlacze (jeden na rodzaj sygnału, pozostałe na częstotliwość).   
+
+    
