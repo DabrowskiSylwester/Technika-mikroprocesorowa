@@ -11,8 +11,9 @@
 .org 0x00
 	rjmp prog_start
 ;DEFINITION OF INTERUPTS:
-
-.org 0x32
+.org INT0addr
+	rjmp control_mode
+.org 0x60
 ;7seg decoder:
 sgm: .DB 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c,0x39, 0x5e, 0x79, 0x71
 .org 0x100
@@ -29,28 +30,39 @@ prog_start:
 	; and portE for selection of display
 	ldi r16, 0x0f
 	out ddre, r16
-	;we can use portC as keybord input
-	ldi r16, 0x00
-	out ddrc r16
-	ldi r16, 0x3f
-	out portc, r16 ;pull-up resistors
-
+	;special setting for portD
+	;PD6 - outout of waveform generator
+	;keybord:
+	;PD2 - INT0 button
+	;PD0-PD5 is all we needed
+	ldi r16, 0b01000000
+	out ddrd r16
+	ldi r16, 0b00111111 ;pull up resistors
+	out portd, r16
+	;Interrupt enable (external interrupt from S1 triggered by raising edge):
+	ldi r16, (1<<int0)
+	out eimsk, r20
+	ldi r16, (1<<isc01)|(1<<isc00)
+	sts eicra, r20
+	sei
 working: rjmp working
 
 
 control_mode:
-; Control mode is using 4 buttons from keybord (S1-S4)	
-; W1xKn
-; S1 - enter control mode
-; S2 - choose signal: PWM (display0: P), sine (S) or triangle (|-) 
-; S3 - increase frequency (display1-3)
-; S4 - decrease frequency (display1-3)
-;W2xKn
-; S5 - exit control mode
-; S6 - enter duty cycle mode change in PWM (display1: d)
-; S3 - increase duty cycle (display2-3)
-; S4 - decrease duty cycle (display2-3)
+; Control mode is using 6 buttons:
+; PD2 - enter/exit control mode
+; PD3 - choose signal: PWM (display0: P), sine (S) or triangle (|-) 
+; PD0 - increase frequency (display1-3)
+; PD1 - decrease frequency (display1-3)
+; PD4 - increase duty cycle (display2-3)
+; PD5 - decrease duty cycle (display2-3) [we can use diodes to display current duty cycle and change it 10:10:90]
 
+	cli
+cm_loop:
+	
+	rjmp cm_loop
+	sei
+	reti
 clk_source:
 ; As reference clock we can use128 kHz Internal Oscillator
 ; CKSEL[3:0] = 0b0011 
