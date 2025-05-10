@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm Sat May 10 20:53:33 2025
+AVRASM ver. 2.2.8  C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm Sat May 10 21:27:44 2025
 
 
 EQU  SIGNATURE_000 0000001e
@@ -1157,16 +1157,16 @@ CSEG cm_freq_dec  00000122
 CSEG cm_dc        00000126
 CSEG cm_dc_dec    0000012b
 CSEG cm_if_done   0000012f
-CSEG cm_done      00000132
-CSEG clk_source   00000134
-CSEG PWM          00000134
-CSEG sine         00000134
-CSEG triang       00000134
-CSEG delay_1s     00000134
-CSEG loop1s1      00000138
-CSEG loop1s2      00000139
-CSEG loop1s3      0000013a
-CSEG delay_8ms    00000144
-CSEG loop8ms1     00000148
-CSEG loop8ms2     00000149
-CSEG loop8ms3     0000014a
+CSEG cm_done      00000134
+CSEG delay_20ms   0000014c
+CSEG PWM          0000013c
+CSEG sine         0000013c
+CSEG triang       0000013c
+CSEG clk_source   0000013c
+CSEG delay_1s     0000013c
+CSEG loop1s1      00000140
+CSEG loop1s2      00000141
+CSEG loop1s3      00000142
+CSEG loop20ms1    00000150
+CSEG loop20ms2    00000151
+CSEG loop20ms3    00000152

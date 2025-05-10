@@ -33,18 +33,18 @@
   <cm_dc><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>88</LINE></cm_dc>
   <cm_dc_dec><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>94</LINE></cm_dc_dec>
   <cm_if_done><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>99</LINE></cm_if_done>
-  <cm_done><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>103</LINE></cm_done>
-  <clk_source><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>115</LINE></clk_source>
-  <PWM><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>130</LINE></PWM>
-  <sine><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>142</LINE></sine>
-  <triang><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>146</LINE></triang>
-  <delay_1s><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>150</LINE></delay_1s>
-  <loop1s1><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>155</LINE></loop1s1>
-  <loop1s2><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>156</LINE></loop1s2>
-  <loop1s3><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>157</LINE></loop1s3>
-  <delay_8ms><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>168</LINE></delay_8ms>
-  <loop8ms1><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>173</LINE></loop8ms1>
-  <loop8ms2><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>174</LINE></loop8ms2>
-  <loop8ms3><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>175</LINE></loop8ms3>
+  <cm_done><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>104</LINE></cm_done>
+  <delay_20ms><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>179</LINE></delay_20ms>
+  <PWM><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>140</LINE></PWM>
+  <sine><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>153</LINE></sine>
+  <triang><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>157</LINE></triang>
+  <clk_source><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>124</LINE></clk_source>
+  <delay_1s><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>161</LINE></delay_1s>
+  <loop1s1><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>166</LINE></loop1s1>
+  <loop1s2><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>167</LINE></loop1s2>
+  <loop1s3><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>168</LINE></loop1s3>
+  <loop20ms1><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>184</LINE></loop20ms1>
+  <loop20ms2><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>185</LINE></loop20ms2>
+  <loop20ms3><FILE>C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm</FILE><LINE>186</LINE></loop20ms3>
  </LABELS>
 </ASSEMBLER_INFO>

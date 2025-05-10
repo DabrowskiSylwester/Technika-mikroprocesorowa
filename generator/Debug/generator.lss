@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm Sat May 10 20:53:33 2025
+AVRASM ver. 2.2.8  C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm Sat May 10 21:27:44 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
 C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
@@ -1684,21 +1684,31 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
 00012e e5ba                      	ldi r27, 90
                                  cm_if_done:
 00012f 9b5a                      	sbis portd, 2 ; if it is pressed exit cm_loop
-000130 c001                      	rjmp cm_done
-000131 cfe6                      	rjmp cm_loop
+000130 c003                      	rjmp cm_done
+000131 940e 014c                 	call delay_20ms ; delay should prevent user from too quick 
+000133 cfe4                      	rjmp cm_loop ; otherwise return to begining
                                  cm_done:
-000132 9478                      	sei
-000133 9518                      	reti
+000134 9478                      	sei ; enable interrupts
+                                 	; when settings are made programm jumps to proper section regarding signal form
+000135 3091                      	cpi r25, 1 
+000136 c005                      	rjmp PWM
+000137 3092                      	cpi r25, 2
+000138 c003                      	rjmp sine
+000139 3093                      	cpi r25, 3
+00013a c001                      	rjmp triang
+00013b 9518                      	reti
                                  
                                  ;-----------------------------------------------------------------------------------------------------------------------------
-                                 ;In every place when we expect interupts we have to call fuction, that check in which mode should work.
+                                 ;?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+                                 ;In every place when we expect interupts do we have to call fuction, that check in which mode should work?
                                  ;???????It is necessary, becouse we have to use reti to be done with interrupt and reti will send us to last.
                                  ;We have to check it. If there were option to ignore reti, it would be better.
                                  ;We can simply enable interupts after jump to proper mode.?????????????????? 
-                                 
+                                 ;?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
                                  clk_source:
+                                 ; Source: Datasheet cap. 11
                                  ; As reference clock we can use128 kHz Internal Oscillator
                                  ; CKSEL[3:0] = 0b0011 
                                  ; PWM frequencies: f_PWM=128kHz/(N*256)
@@ -1714,6 +1724,7 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
                                  PWM:
+                                 ; Source: Datasheet cap. 18
                                  ; PWM with timers:
                                  ; We are using 8bit timer/counter0.
                                  ; We are using internal clock system to provide clk signal.
@@ -1733,41 +1744,41 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
                                  
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
-                                 delay_1s: 
-000134 931f                      	push r17
-000135 932f                      	push r18
-000136 933f                      	push r19
-000137 ef1f                      	ldi r17, 255
-000138 ef2f                      loop1s1: ldi r18, 255
-000139 e53a                      loop1s2: ldi r19,90
-00013a 953a                      loop1s3: dec r19
-00013b f7f1                      	brne loop1s3
-00013c 952a                      	dec r18
-00013d f7d9                      	brne loop1s2
-00013e 951a                      	dec r17
-00013f f7c1                      	brne loop1s1
-000140 913f                      	pop r19
-000141 912f                      	pop r18
-000142 911f                      	pop r17
-000143 9508                      	ret
+                                 delay_1s: ;assumption clock 16MHz
+00013c 931f                      	push r17
+00013d 932f                      	push r18
+00013e 933f                      	push r19
+00013f ef1f                      	ldi r17, 255
+000140 ef2f                      loop1s1: ldi r18, 255
+000141 ef36                      loop1s2: ldi r19,246
+000142 953a                      loop1s3: dec r19
+000143 f7f1                      	brne loop1s3
+000144 952a                      	dec r18
+000145 f7d9                      	brne loop1s2
+000146 951a                      	dec r17
+000147 f7c1                      	brne loop1s1
+000148 913f                      	pop r19
+000149 912f                      	pop r18
+00014a 911f                      	pop r17
+00014b 9508                      	ret
                                  
-                                 delay_8ms: 
-000144 931f                      	push r17
-000145 932f                      	push r18
-000146 933f                      	push r19
-000147 ef1f                      	ldi r17, 255
-000148 ef2f                      loop8ms1: ldi r18, 255
-000149 ef3b                      loop8ms2: ldi r19,251
-00014a 953a                      loop8ms3: dec r19
-00014b f7f1                      	brne loop8ms3
-00014c 952a                      	dec r18
-00014d f7d9                      	brne loop8ms2
-00014e 951a                      	dec r17
-00014f f7c1                      	brne loop8ms1
-000150 913f                      	pop r19
-000151 912f                      	pop r18
-000152 911f                      	pop r17
-000153 9508                      	ret
+                                 delay_20ms: 
+00014c 931f                      	push r17
+00014d 932f                      	push r18
+00014e 933f                      	push r19
+00014f ef1f                      	ldi r17, 255
+000150 ef2f                      loop20ms1: ldi r18, 255
+000151 e035                      loop20ms2: ldi r19,5
+000152 953a                      loop20ms3: dec r19
+000153 f7f1                      	brne loop20ms3
+000154 952a                      	dec r18
+000155 f7d9                      	brne loop20ms2
+000156 951a                      	dec r17
+000157 f7c1                      	brne loop20ms1
+000158 913f                      	pop r19
+000159 912f                      	pop r18
+00015a 911f                      	pop r17
+00015b 9508                      	ret
                                  
 
 
@@ -1789,7 +1800,7 @@ counted separately from r26..r31 here.
 x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
 r13:   0 r14:   0 r15:   0 r16:  14 r17:   8 r18:   8 r19:   8 r20:   2 
-r21:   0 r22:   0 r23:   0 r24:   0 r25:   4 r26:   6 r27:   6 r28:   3 
+r21:   0 r22:   0 r23:   0 r24:   0 r25:   7 r26:   6 r27:   6 r28:   3 
 r29:   0 r30:   0 r31:   0 
 Registers used: 9 out of 35 (25.7%)
 
@@ -1799,26 +1810,26 @@ andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0
 brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
 brne  :  11 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   1 cbi   :   0 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   3 cpse  :   0 dec   :   7 eor   :   0 fmul  :   0 fmuls :   0 
+cpi   :   6 cpse  :   0 dec   :   7 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   2 jmp   :   0 
 ld    :   0 ldd   :   0 ldi   :  23 lds   :   0 lpm   :   0 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   7 pop   :   6 
-push  :   6 rcall :   0 ret   :   2 reti  :   1 rjmp  :   5 rol   :   0 
+push  :   6 rcall :   0 ret   :   2 reti  :   1 rjmp  :   8 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   0 sbic  :   0 sbis  :   6 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   2 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   1 
 sub   :   1 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 17 out of 113 (15.0%)
+Instructions used: 18 out of 113 (15.9%)
 
 "ATmega328PB" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0002a8    172     16    188   32768   0.6%
+[.cseg] 0x000000 0x0002b8    188     16    204   32768   0.6%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

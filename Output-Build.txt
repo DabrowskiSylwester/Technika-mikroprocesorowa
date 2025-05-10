@@ -14,7 +14,7 @@ Target "CoreBuild" in file "C:\Program Files (x86)\Atmel\Studio\7.0\Vs\Assembler
 		"ATmega328PB" memory use summary [bytes]:
 		Segment   Begin    End      Code   Data   Used    Size   Use%
 		---------------------------------------------------------------
-		[.cseg] 0x000000 0x0002a8    172     16    188   32768   0.6%
+		[.cseg] 0x000000 0x0002b8    188     16    204   32768   0.6%
 		[.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 		[.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 		Assembly complete, 0 errors. 0 warnings
