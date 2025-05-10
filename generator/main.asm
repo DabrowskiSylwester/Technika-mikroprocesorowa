@@ -23,22 +23,33 @@ prog_start:
 	out sph, r16
 	ldi r16, low(ramend)
 	out spl, r16
-	;We can use portB for 7seg displayer (port D is needed for waveform generator).
+	;We can use portB for 7seg display (port D is needed for waveform generator).
 	ldi r16, 0xff
 	out ddrb, r16
-	;we can use portE as keybord input
-	ldi r16, 0x00
-	out ddre r16
+	; and portE for selection of display
 	ldi r16, 0x0f
-	out porte, r16 ;pull-up resistors
+	out ddre, r16
+	;we can use portC as keybord input
+	ldi r16, 0x00
+	out ddrc r16
+	ldi r16, 0x3f
+	out portc, r16 ;pull-up resistors
+
+working: rjmp working
 
 
 control_mode:
 ; Control mode is using 4 buttons from keybord (S1-S4)	
-; S1 - enter/exit control mode/
+; W1xKn
+; S1 - enter control mode
 ; S2 - choose signal: PWM (display0: P), sine (S) or triangle (|-) 
 ; S3 - increase frequency (display1-3)
-; S4 - increase duty cycle (display1-3)
+; S4 - decrease frequency (display1-3)
+;W2xKn
+; S5 - exit control mode
+; S6 - enter duty cycle mode change in PWM (display1: d)
+; S3 - increase duty cycle (display2-3)
+; S4 - decrease duty cycle (display2-3)
 
 clk_source:
 ; As reference clock we can use128 kHz Internal Oscillator
@@ -58,3 +69,9 @@ PWM:
 ; If TCNT0 == OCR0A then output is cleared. 
 ; OCR0A have to be set as time_on in first cycle and time_off in second. 
 ; We can take signal from waveform generator -> OC0A = PD6 
+
+sine:
+
+
+
+triang:
