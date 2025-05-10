@@ -1,0 +1,29 @@
+﻿------ Build started: Project: generator, Configuration: Debug AVR ------
+Build started.
+Project "generator.asmproj" (default targets):
+Target "PreBuildEvent" skipped, due to false condition; ('$(PreBuildEvent)'!='') was evaluated as (''!='').
+Target "CoreBuild" in file "C:\Program Files (x86)\Atmel\Studio\7.0\Vs\Assembler.targets" from project "C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\generator.asmproj" (target "Build" depends on it):
+	Task "RunAssemblerTask"
+		C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\avrasm2.exe -fI -o "generator.hex"  -m "generator.map"  -l "generator.lss"  -S "generator.tmp"  -W+ie -I"C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc"  -im328PBdef.inc -d "C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\Debug\generator.obj"  "C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm"  -I "C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include" 
+		AVRASM: AVR macro assembler 2.2.8 (build 80 Jan 14 2020 18:27:50)
+		Copyright (C) 1995-2020 ATMEL Corporation
+		[builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
+		C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
+		[builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
+		C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
+		"ATmega328PB" memory use summary [bytes]:
+		Segment   Begin    End      Code   Data   Used    Size   Use%
+		---------------------------------------------------------------
+		[.cseg] 0x000000 0x0002a8    172     16    188   32768   0.6%
+		[.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
+		[.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
+		Assembly complete, 0 errors. 0 warnings
+	Done executing task "RunAssemblerTask".
+Done building target "CoreBuild" in project "generator.asmproj".
+Target "PostBuildEvent" skipped, due to false condition; ('$(PostBuildEvent)' != '') was evaluated as ('' != '').
+Target "Build" in file "C:\Program Files (x86)\Atmel\Studio\7.0\Vs\Avr.common.targets" from project "C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\generator.asmproj" (entry point):
+Done building target "Build" in project "generator.asmproj".
+Done building project "generator.asmproj".
+
+Build succeeded.
+========== Build: 1 succeeded or up-to-date, 0 failed, 0 skipped ==========
