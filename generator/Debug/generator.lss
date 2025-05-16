@@ -1,10 +1,10 @@
 
-AVRASM ver. 2.2.8  C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm Sat May 10 21:27:44 2025
+AVRASM ver. 2.2.8  C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm Fri May 16 21:42:52 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
-C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
+C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
-C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
+C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
                                  
                                  ; Authors: Oskar Herman, Sylwester D¹browski
                                  
@@ -1550,6 +1550,7 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
                                  
                                  
                                  ; Project for Microprocessor thechnics class at AGH University of Krakow
+                                 ; Summer semester of 2025
                                  ; 
                                  ; Description : bla bla bla 
                                  
@@ -1591,9 +1592,9 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
 000000 c0ff                      	rjmp prog_start
                                  ;DEFINITION OF INTERUPTS:
                                  .org INT0addr
-000002 c114                      	rjmp control_mode
+000002 c118                      	rjmp control_mode
                                  .org 0x60
-                                 ;7seg decoder:
+                                 ;7seg decoder (digits are fine but we need new select system):
 000060 063f
 000061 4f5b
 000062 6d66
@@ -1618,27 +1619,32 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
                                  	; and portE for selection of display
 000106 e00f                      	ldi r16, 0x0f
 000107 b90d                      	out ddre, r16
+                                 	; portC diodes for duty cycle display (last is connected to VCC)
+000108 e30f                      	ldi r16, 0x3f
+000109 b907                      	out ddrc, r16
                                  	;special setting for portD
                                  	;PD6 - outout of waveform generator
                                  	;keybord:
                                  	;PD2 - INT0 button
                                  	;PD0-PD5 is all we needed
-000108 e400                      	ldi r16, 0b01000000
-000109 b90a                      	out ddrd, r16
-00010a e30f                      	ldi r16, 0b00111111 ;pull up resistors
-00010b b90b                      	out portd, r16
+00010a e400                      	ldi r16, 0b01000000
+00010b b90a                      	out ddrd, r16
+00010c e30f                      	ldi r16, 0b00111111 ;pull up resistors
+00010d b90b                      	out portd, r16
                                  	;allocation and default set of control registers:
-00010c e091                      	ldi r25, 1 ; r25 is a register for type of signal: 1-PWM, 2-sine, 3-triang 
-00010d e0a8                      	ldi r26, 8 ; r26 is a register for frequency (default 500Hz)
-00010e e3b2                      	ldi r27, 50 ; r27 is a register for duty cycle (default 50%)
-00010f e0ca                      	ldi r28, 10 ; r28 is a register for step of changing duty cycle 
+00010e e091                      	ldi r25, 1 ; r25 is a register for type of signal: default 1-PWM, 2-sine, 3-triang 
+00010f e0a4                      	ldi r26, 4 ; r26 is a register for frequency (default 488 Hz)
+000110 e3b2                      	ldi r27, 50 ; r27 is a register for duty cycle (default 50%)
+000111 e0c5                      	ldi r28, 5 ; r28 is a register for step of changing duty cycle 
+000112 e001                      	ldi r16, 1;
+000113 2e20                      	mov r2, r16;
+000114 2411                      	eor r1, r1; r1 is a register for interrupt controll (it is set, when iterrupt occured)
                                  	;Interrupt enable (external interrupt from PD2 triggered by raising edge):
-000110 e001                      	ldi r16, (1<<int0)
-000111 bb4d                      	out eimsk, r20
-000112 e003                      	ldi r16, (1<<isc01)|(1<<isc00)
-000113 9340 0069                 	sts eicra, r20
-000115 9478                      	sei
-000116 cfff                      waiting: rjmp waiting ;waiting for interupt that opens control mode
+000115 e001                      	ldi r16, (1<<int0)
+000116 bb4d                      	out eimsk, r20
+000117 e003                      	ldi r16, (1<<isc01)|(1<<isc00)
+000118 9340 0069                 	sts eicra, r20
+00011a c024                      	rjmp PWM ; jump to default signal
                                  
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
@@ -1651,52 +1657,48 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
                                  ; PD4 - increase duty cycle (display2-3)
                                  ; PD5 - decrease duty cycle (display2-3) [we can use diodes to display current duty cycle and change it 10:10:90]
                                  
-000117 94f8                      	cli ;diseble interrupts
+00011b 94f8                      	cli ;diseble interrupts
                                  cm_loop:
+00011c 940e 01ca                 	call display ; display current settings
+00011e 940e 01ca                 	call LEDdriver
                                  	; check if button is pressed
                                  cm_signal:
-000118 9b5b                      	sbis portd, 3 
-000119 9593                      	inc r25
-00011a 3094                      	cpi r25, 4 ; if greater than 3 load 1 
-00011b f409                      	brne cm_freq 
-00011c e091                      	ldi r25, 1
+000120 9b5b                      	sbis portd, 3 
+000121 9593                      	inc r25
+000122 3094                      	cpi r25, 4 ; if greater than 3 load 1 
+000123 f409                      	brne cm_freq 
+000124 e091                      	ldi r25, 1
                                  cm_freq:
-00011d 9b58                      	sbis portd, 0
-00011e 95a3                      	inc r26
-00011f 30ab                      	cpi r26, 11 ; if greater than 10 load 1
-000120 f409                      	brne cm_freq_dec
-000121 e0a1                      	ldi r26, 1
+000125 9b58                      	sbis portd, 0
+000126 95a3                      	inc r26
+000127 30a6                      	cpi r26, 6 ; if greater than 5 load 1
+000128 f409                      	brne cm_freq_dec
+000129 e0a1                      	ldi r26, 1
                                  cm_freq_dec: 
-000122 9b59                      	sbis portd, 1
-000123 95aa                      	dec r26 
-000124 f409                      	brne cm_dc ; if less than 1 load 10
-000125 e0aa                      	ldi r26, 10 	
+00012a 9b59                      	sbis portd, 1
+00012b 95aa                      	dec r26 
+00012c f409                      	brne cm_dc ; if less than 1 load 5
+00012d e0a5                      	ldi r26, 5 	
                                  cm_dc:
-000126 9b5c                      	sbis portd, 4
-000127 0fbc                      	add r27, r28
-000128 36b4                      	cpi r27, 100 ; if greater than 100 load 10
-000129 f409                      	brne cm_dc_dec
-00012a e0ba                      	ldi r27, 10
+00012e 9b5c                      	sbis portd, 4
+00012f 0fbc                      	add r27, r28
+000130 35bf                      	cpi r27, 95 ; if greater than 90 load 10
+000131 f409                      	brne cm_dc_dec
+000132 e0ba                      	ldi r27, 10
                                  cm_dc_dec:
-00012b 9b5d                      	sbis portd, 5
-00012c 1bbc                      	sub r27, r28
-00012d f409                      	brne cm_if_done ; if less than 10 load 90
-00012e e5ba                      	ldi r27, 90
+000133 9b5d                      	sbis portd, 5
+000134 1bbc                      	sub r27, r28
+000135 30b5                      	cpi r27, 5 ; if less than 10 load 90
+000136 f409                      	brne cm_if_done 
+000137 e5ba                      	ldi r27, 90
                                  cm_if_done:
-00012f 9b5a                      	sbis portd, 2 ; if it is pressed exit cm_loop
-000130 c003                      	rjmp cm_done
-000131 940e 014c                 	call delay_20ms ; delay should prevent user from too quick 
-000133 cfe4                      	rjmp cm_loop ; otherwise return to begining
-                                 cm_done:
-000134 9478                      	sei ; enable interrupts
-                                 	; when settings are made programm jumps to proper section regarding signal form
-000135 3091                      	cpi r25, 1 
-000136 c005                      	rjmp PWM
-000137 3092                      	cpi r25, 2
-000138 c003                      	rjmp sine
-000139 3093                      	cpi r25, 3
-00013a c001                      	rjmp triang
-00013b 9518                      	reti
+000138 9b5a                      	sbis portd, 2 ; if it is pressed exit cm_loop
+000139 c003                      	rjmp cm_done
+00013a 940e 01da                 	call delay_20ms ; delay should prevent user from reading the button twice
+00013c cfdf                      	rjmp cm_loop ; otherwise return to begining
+                                 cm_done: 
+00013d 2c12                      	mov r1, r2 ; set 'private interrupt flag'
+00013e 9518                      	reti
                                  
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  ;?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
@@ -1705,21 +1707,20 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
                                  ;We have to check it. If there were option to ignore reti, it would be better.
                                  ;We can simply enable interupts after jump to proper mode.?????????????????? 
                                  ;?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+                                 ;ANSWER Miko³aj Krysiak: stos siê wam rozwali!
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
-                                 clk_source:
+                                 ; Clock system
                                  ; Source: Datasheet cap. 11
-                                 ; As reference clock we can use128 kHz Internal Oscillator
-                                 ; CKSEL[3:0] = 0b0011 
-                                 ; PWM frequencies: f_PWM=128kHz/(N*256)
+                                 ; As reference clock we can 8Mhz clock
+                                 ; It changes clk signal for whole microcontroller, so it can be used only in PWM mode. 
+                                 ; CKSEL[3:0] = 0b0010 (default), but it is diveded by 8
+                                 ; PWM frequencies: f_PWM=1MHz/(N*256)
                                  ; N={1,8,64,256,1024}
-                                 ; 0.5Hz (N=1024), ~2Hz, 8Hz, 62.5Hz, 500Hz
-                                 ; Or 8Mhz clock
-                                 ; CKSEL[3:0] = 0b0010 
-                                 ; 30.5Hz, 122Hz, 488Hz, 3.9KhZ, 31kHz
+                                 ; 3.8Hz, 15.3Hz, 61Hz, 488Hz, 3.9kHz
                                  ; We can stores availible frequencies as a integers:
-                                 ; 1=>0.5Hz, 2=>2Hz, 3=>8Hz, 4=>30.5Hz 5=>62.5Hz, 
-                                 ; 6=>122Hz, 7=>488Hz, 8=>500Hz, 9=>3.9kHz 10=>31kHz
+                                 ; 1=>3.8Hz, 2=>15.3Hz, 3=>61Hz, 4=>488Hz, 5=>3.9kHz
+                                 ; It is posible to use others prescalers to divide CPU Clk, but we don't use it in this project.
                                  
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
@@ -1729,56 +1730,246 @@ C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(8): Including
                                  ; We are using 8bit timer/counter0.
                                  ; We are using internal clock system to provide clk signal.
                                  ; TCNT0 is a register where counting takes place. 
-                                 ; We can use fast PWM mode (WGM0[2:0]=0x3) 
-                                 ; If TCNT0 == OCR0A then output is cleared. 
+                                 ; We can use fast PWM mode (WGM0[2:0]=0x3)
+                                 ; than TOP is 0xff and  
+                                 ; if TCNT0 == OCR0A then output is cleared. 
                                  ; OCR0A have to be set as time_on in first cycle and time_off in second. 
                                  ; We can take signal from waveform generator -> OC0A = PD6 
+00013f 9478                      	sei
+                                 	;enter fast PWM mode:
+000140 e803                      	ldi r16, 0b10000011 ;COM0A 10 COM0B 00 WGM0[1:0] 11
+000141 bd04                      	out TCCR0A, r16
+                                 	;decoding frequency setting 
+000142 940e 0160                 	call PWMfreq
+                                 	;decoding duty cycle setting :
+000144 940e 0177                 	call PWMduty
+                                 PWM_working:
                                  
+                                 ;mode checking:
+000146 1412                      	cp r1, r2 ; check if interrupt has occured
+000147 f7f1                      	brne PWM_working ; if not continue your normal work
+000148 2411                      	eor r1, r1 ; clear 'private interrupt flag'
+000149 3091                      	cpi r25, 1  ; if yes check what was changed (jump to proper signal-mode)
+00014a f3a1                      	breq PWM
+00014b 3092                      	cpi r25, 2
+00014c f019                      	breq sine
+00014d 3093                      	cpi r25, 3
+00014e f049                      	breq triang
+00014f cff6                      	rjmp PWM_working
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
                                  sine:
+000150 9478                      	sei
+                                 	;code
                                  
+                                 sine_working:
+                                 ;mode checking:
+000151 3091                      	cpi r25, 1 
+000152 f361                      	breq PWM
+000153 3092                      	cpi r25, 2
+000154 f3d9                      	breq sine
+000155 3093                      	cpi r25, 3
+000156 f009                      	breq triang
+000157 cff9                      	rjmp sine_working
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
                                  triang:
+000158 9478                      	sei
+                                 	;code
+                                 
+                                 
+                                 triang_working:
+                                 ;mode checking:
+000159 3091                      	cpi r25, 1 
+00015a f321                      	breq PWM
+00015b 3092                      	cpi r25, 2
+00015c f399                      	breq sine
+00015d 3093                      	cpi r25, 3
+00015e f3c9                      	breq triang
+00015f cff9                      	rjmp triang_working
+                                 ;-----------------------------------------------------------------------------------------------------------------------------
+                                 PWMfreq:
+                                 	;ldi r16, 0b00000001 ; 0000-obligatory WGMO[2] 0 CS0 [2:0] depends on frequency
+                                 	;out TCCR0B, r16
+                                 PWMfreq1: ;3.8Hz N=1024
+000160 30a1                      	cpi r26, 1 ;check if selected frequency is mode 1
+000161 f419                      	brne PWMfreq2 ;if not branch to mod 2
+000162 e005                      	ldi r16, 0b00000101 ;select prescaler
+000163 bd05                      	out TCCR0B, r16
+000164 9508                      	ret
+                                 PWMfreq2: ;15.3Hz, N=256
+000165 30a2                      	cpi r26, 2 ;check if selected frequency is mode 2
+000166 f419                      	brne PWMfreq3 ;if not branch to mod 3
+000167 e004                      	ldi r16, 0b00000100 ;select prescaler
+000168 bd05                      	out TCCR0B, r16
+000169 9508                      	ret
+                                 PWMfreq3: ; 61Hz, N=64
+00016a 30a3                      	cpi r26, 3 ;check if selected frequency is mode 3
+00016b f419                      	brne PWMfreq4 ;if not branch to mod 4
+00016c e003                      	ldi r16, 0b00000011 ;select prescaler
+00016d bd05                      	out TCCR0B, r16
+00016e 9508                      	ret
+                                 PWMfreq4: ; 488Hz, N=8
+00016f 30a4                      	cpi r26, 4 ;check if selected frequency is mode 4
+000170 f419                      	brne PWMfreq5 ;if not branch to mod 5
+000171 e002                      	ldi r16, 0b00000010 ;select prescaler
+000172 bd05                      	out TCCR0B, r16
+000173 9508                      	ret
+                                 PWMfreq5: ; 3.9kHz, N=1
+000174 e001                      	ldi r16, 0b00000001 ;select prescaler
+000175 bd05                      	out TCCR0B, r16
+000176 9508                      	ret
+                                 ;-----------------------------------------------------------------------------------------------------------------------------
+                                 PWMduty:
+                                 	;duty cycle can be choosen from following series: 10% to 90% with step of 5%
+                                 PWMduty10:	
+000177 30ba                      	cpi r27, 10 ;check if duty cycle equals to 10%
+000178 f419                      	brne PWMduty15 ; if not go to 15%
+000179 e10a                      	ldi r16, 26 
+00017a bd07                      	out OCR0A, r16
+00017b 9508                      	ret
+                                 PWMduty15:	
+00017c 30bf                      	cpi r27, 15 ;check if duty cycle equals to 15%
+00017d f419                      	brne PWMduty20 ; if not go to 20%
+00017e e206                      	ldi r16, 38 
+00017f bd07                      	out OCR0A, r16
+000180 9508                      	ret
+                                 PWMduty20:	
+000181 31b4                      	cpi r27, 20 ;check if duty cycle equals to 20%
+000182 f419                      	brne PWMduty25 ; if not go to 25%
+000183 e303                      	ldi r16, 51 
+000184 bd07                      	out OCR0A, r16
+000185 9508                      	ret
+                                 PWMduty25:	
+000186 31b9                      	cpi r27, 25 ;check if duty cycle equals to 25%
+000187 f419                      	brne PWMduty30 ; if not go to 30%
+000188 e400                      	ldi r16, 64 
+000189 bd07                      	out OCR0A, r16
+00018a 9508                      	ret
+                                 PWMduty30:	
+00018b 31be                      	cpi r27, 30 ;check if duty cycle equals to 30%
+00018c f419                      	brne PWMduty35 ; if not go to 35%
+00018d e40d                      	ldi r16, 77 
+00018e bd07                      	out OCR0A, r16
+00018f 9508                      	ret
+                                 PWMduty35:	
+000190 32b3                      	cpi r27, 35 ;check if duty cycle equals to 35%
+000191 f419                      	brne PWMduty40 ; if not go to 40%
+000192 e50a                      	ldi r16, 90 
+000193 bd07                      	out OCR0A, r16
+000194 9508                      	ret
+                                 PWMduty40:	
+000195 32b8                      	cpi r27, 40 ;check if duty cycle equals to 40%
+000196 f419                      	brne PWMduty45 ; if not go to 45%
+000197 e606                      	ldi r16, 102 
+000198 bd07                      	out OCR0A, r16
+000199 9508                      	ret
+                                 PWMduty45:	
+00019a 32bd                      	cpi r27, 45 ;check if duty cycle equals to 45%
+00019b f419                      	brne PWMduty50 ; if not go to 50%
+00019c e703                      	ldi r16, 115 
+00019d bd07                      	out OCR0A, r16
+00019e 9508                      	ret
+                                 PWMduty50:	
+00019f 33b2                      	cpi r27, 50 ;check if duty cycle equals to 50%
+0001a0 f419                      	brne PWMduty55 ; if not go to 55%
+0001a1 e800                      	ldi r16, 128 
+0001a2 bd07                      	out OCR0A, r16
+0001a3 9508                      	ret
+                                 PWMduty55:	
+0001a4 33b7                      	cpi r27, 55;check if duty cycle equals to 55%
+0001a5 f419                      	brne PWMduty60 ; if not go to 60%
+0001a6 e80d                      	ldi r16, 141 
+0001a7 bd07                      	out OCR0A, r16
+0001a8 9508                      	ret
+                                 PWMduty60:	
+0001a9 33bc                      	cpi r27, 60 ;check if duty cycle equals to 60%
+0001aa f419                      	brne PWMduty65 ; if not go to 65%
+0001ab e90a                      	ldi r16, 154 
+0001ac bd07                      	out OCR0A, r16
+0001ad 9508                      	ret
+                                 PWMduty65:	
+0001ae 34b1                      	cpi r27, 65 ;check if duty cycle equals to 65%
+0001af f419                      	brne PWMduty70 ; if not go to 70%
+0001b0 ea06                      	ldi r16, 166 
+0001b1 bd07                      	out OCR0A, r16
+0001b2 9508                      	ret
+                                 PWMduty70:	
+0001b3 34b6                      	cpi r27, 70 ;check if duty cycle equals to 70%
+0001b4 f419                      	brne PWMduty75 ; if not go to 75%
+0001b5 eb03                      	ldi r16, 179 
+0001b6 bd07                      	out OCR0A, r16
+0001b7 9508                      	ret
+                                 PWMduty75:	
+0001b8 34bb                      	cpi r27, 75 ;check if duty cycle equals to 75%
+0001b9 f419                      	brne PWMduty80 ; if not go to 80%
+0001ba ec00                      	ldi r16, 192 
+0001bb bd07                      	out OCR0A, r16
+0001bc 9508                      	ret
+                                 PWMduty80:	
+0001bd 35b0                      	cpi r27, 80 ;check if duty cycle equals to 80%
+0001be f419                      	brne PWMduty85 ; if not go to 85%
+0001bf ec0d                      	ldi r16, 205 
+0001c0 bd07                      	out OCR0A, r16
+0001c1 9508                      	ret
+                                 PWMduty85:	
+0001c2 35b5                      	cpi r27, 85 ;check if duty cycle equals to 85%
+0001c3 f419                      	brne PWMduty90 ; if not go to 90%
+0001c4 ed0a                      	ldi r16, 218 
+0001c5 bd07                      	out OCR0A, r16
+0001c6 9508                      	ret
+                                 PWMduty90:	
+0001c7 ee06                      	ldi r16, 230
+0001c8 bd07                      	out OCR0A, r16
+0001c9 9508                      	ret
+                                 ;-----------------------------------------------------------------------------------------------------------------------------
+                                 
+                                 
+                                 
+                                 
+                                 
+                                 ;-----------------------------------------------------------------------------------------------------------------------------
+                                 display:
+                                 ; We need display modulus, but it cannot work in hex - it will be annoying .
+                                 ; It should be no problem with it - we use "a frequency code", so we can translete into in more human way ;) 
+                                 LEDdriver:
                                  
                                  ;-----------------------------------------------------------------------------------------------------------------------------
                                  
-                                 delay_1s: ;assumption clock 16MHz
-00013c 931f                      	push r17
-00013d 932f                      	push r18
-00013e 933f                      	push r19
-00013f ef1f                      	ldi r17, 255
-000140 ef2f                      loop1s1: ldi r18, 255
-000141 ef36                      loop1s2: ldi r19,246
-000142 953a                      loop1s3: dec r19
-000143 f7f1                      	brne loop1s3
-000144 952a                      	dec r18
-000145 f7d9                      	brne loop1s2
-000146 951a                      	dec r17
-000147 f7c1                      	brne loop1s1
-000148 913f                      	pop r19
-000149 912f                      	pop r18
-00014a 911f                      	pop r17
-00014b 9508                      	ret
+                                 delay_1s: ;assumption clock 8MHz
+0001ca 931f                      	push r17
+0001cb 932f                      	push r18
+0001cc 933f                      	push r19
+0001cd ef1f                      	ldi r17, 255
+0001ce ef2f                      loop1s1: ldi r18, 255
+0001cf e63e                      loop1s2: ldi r19,110
+0001d0 953a                      loop1s3: dec r19
+0001d1 f7f1                      	brne loop1s3
+0001d2 952a                      	dec r18
+0001d3 f7d9                      	brne loop1s2
+0001d4 951a                      	dec r17
+0001d5 f7c1                      	brne loop1s1
+0001d6 913f                      	pop r19
+0001d7 912f                      	pop r18
+0001d8 911f                      	pop r17
+0001d9 9508                      	ret
                                  
                                  delay_20ms: 
-00014c 931f                      	push r17
-00014d 932f                      	push r18
-00014e 933f                      	push r19
-00014f ef1f                      	ldi r17, 255
-000150 ef2f                      loop20ms1: ldi r18, 255
-000151 e035                      loop20ms2: ldi r19,5
-000152 953a                      loop20ms3: dec r19
-000153 f7f1                      	brne loop20ms3
-000154 952a                      	dec r18
-000155 f7d9                      	brne loop20ms2
-000156 951a                      	dec r17
-000157 f7c1                      	brne loop20ms1
-000158 913f                      	pop r19
-000159 912f                      	pop r18
-00015a 911f                      	pop r17
-00015b 9508                      	ret
+                                 	;1Mhz -> 100*100*2 ~ 20 ms
+                                 	; it is not precise
+0001da 931f                      	push r17
+0001db 932f                      	push r18
+                                 	
+0001dc e614                      	ldi r17, 100
+0001dd e624                      loop20ms1: ldi r18, 100
+0001de 952a                      loop20ms2: dec r18
+0001df f7f1                      	brne loop20ms2
+0001e0 951a                      	dec r17
+0001e1 f7d9                      	brne loop20ms1
+                                 	
+0001e2 912f                      	pop r18
+0001e3 911f                      	pop r17
+0001e4 9508                      	ret
                                  
 
 
@@ -1797,39 +1988,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328PB" register use summary:
-x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   6 r2 :   3 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  14 r17:   8 r18:   8 r19:   8 r20:   2 
-r21:   0 r22:   0 r23:   0 r24:   0 r25:   7 r26:   6 r27:   6 r28:   3 
+r13:   0 r14:   0 r15:   0 r16:  64 r17:   8 r18:   8 r19:   4 r20:   2 
+r21:   0 r22:   0 r23:   0 r24:   0 r25:  13 r26:  10 r27:  23 r28:   3 
 r29:   0 r30:   0 r31:   0 
-Registers used: 9 out of 35 (25.7%)
+Registers used: 11 out of 35 (31.4%)
 
 "ATmega328PB" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   1 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   9 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :  11 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   1 cbi   :   0 cbr   :   0 
+brne  :  31 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   5 cbi   :   0 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
-clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   6 cpse  :   0 dec   :   7 eor   :   0 fmul  :   0 fmuls :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   1 cpc   :   0 
+cpi   :  33 cpse  :   0 dec   :   6 eor   :   2 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   2 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  23 lds   :   0 lpm   :   0 lsl   :   0 
-lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   7 pop   :   6 
-push  :   6 rcall :   0 ret   :   2 reti  :   1 rjmp  :   8 rol   :   0 
+ld    :   0 ldd   :   0 ldi   :  47 lds   :   0 lpm   :   0 lsl   :   0 
+lsr   :   0 mov   :   2 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  31 pop   :   5 
+push  :   5 rcall :   0 ret   :  24 reti  :   1 rjmp  :   8 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   0 sbic  :   0 sbis  :   6 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
-sei   :   2 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sei   :   3 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   1 
 sub   :   1 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 18 out of 113 (15.9%)
+Instructions used: 22 out of 113 (19.5%)
 
 "ATmega328PB" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0002b8    188     16    204   32768   0.6%
+[.cseg] 0x000000 0x0003ca    462     16    478   32768   1.5%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

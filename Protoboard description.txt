@@ -1,0 +1,71 @@
+The LEDs controll occurus from bottom to top of the board. Collors of the connectors are the same as collors of LEDs
+
+	Duty cylce
+	90% PC5 BLUE
+	75% PC4 GREEN
+	60% PC3 YELLOW
+	50% PC2 RED
+	40% PC1	YELLOW
+	25% PC0 GREEN
+	10% VCC	BLUE
+
+
+Setting of button in proto board:
+
+  EDCBA
+00 
+
+
+
+
+05 
+
+
+
+
+10
+   PD4+
+   ****
+   PD4-
+
+15
+   PD5+
+   ****
+   PD5-
+
+20
+
+
+
+
+25
+
+
+
+
+30 PD0+
+   ****
+   PD0-
+
+   PD1+
+35 ****
+   PD1-
+
+
+
+45
+
+
+
+
+50  PD3+
+    ****
+    PD3-
+
+    PD2+
+55  ****
+    PD2-
+
+
+
+60
