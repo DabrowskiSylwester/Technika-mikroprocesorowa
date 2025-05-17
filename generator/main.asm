@@ -8,12 +8,14 @@
 
 .include "m328PBdef.inc"
 .cseg
-
+;DEFINITION OF INTERUPTS:
 .org 0x00
 	rjmp prog_start
-;DEFINITION OF INTERUPTS:
 .org INT0addr
 	rjmp control_mode
+
+
+
 .org 0x60
 ;7seg decoder (digits are fine but we need new select system):
 sgm: .DB 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c,0x39, 0x5e, 0x79, 0x71
@@ -41,7 +43,8 @@ prog_start:
 	;keybord:
 	;PD2 - INT0 button
 	;PD0-PD5 is all we needed
-	ldi r16, 0b01000000
+	;PD7 is for 1LED
+	ldi r16, 0b11000000
 	out ddrd, r16
 	ldi r16, 0b00111111 ;pull up resistors
 	out portd, r16
@@ -68,8 +71,8 @@ control_mode:
 ; PD3 - choose signal: PWM (display0: P), sine (S) or triangle (|-) 
 ; PD0 - increase frequency (display1-3)
 ; PD1 - decrease frequency (display1-3)
-; PD4 - increase duty cycle (display2-3)
-; PD5 - decrease duty cycle (display2-3) [we can use diodes to display current duty cycle and change it 10:10:90]
+; PD4 - increase duty cycle 
+; PD5 - decrease duty cycle [we can use diodes to display current duty cycle and change it 10:5:90]
 
 	cli ;diseble interrupts
 cm_loop:
@@ -111,6 +114,8 @@ cm_if_done:
 	call delay_20ms ; delay should prevent user from reading the button twice
 	rjmp cm_loop ; otherwise return to begining
 cm_done: 
+	call display
+	call LEDdriver 
 	mov r1, r2 ; set 'private interrupt flag'
 	reti
 
@@ -178,7 +183,10 @@ sine:
 
 sine_working:
 ;mode checking:
-	cpi r25, 1 
+	cp r1, r2 ; check if interrupt has occured
+	brne PWM_working ; if not continue your normal work
+	eor r1, r1 ; clear 'private interrupt flag'
+	cpi r25, 1  ; if yes check what was changed (jump to proper signal-mode)
 	breq PWM
 	cpi r25, 2
 	breq sine
@@ -194,7 +202,10 @@ triang:
 
 triang_working:
 ;mode checking:
-	cpi r25, 1 
+	cp r1, r2 ; check if interrupt has occured
+	brne PWM_working ; if not continue your normal work
+	eor r1, r1 ; clear 'private interrupt flag'
+	cpi r25, 1  ; if yes check what was changed (jump to proper signal-mode)
 	breq PWM
 	cpi r25, 2
 	breq sine
@@ -346,7 +357,46 @@ PWMduty90:
 display:
 ; We need display modulus, but it cannot work in hex - it will be annoying .
 ; It should be no problem with it - we use "a frequency code", so we can translete into in more human way ;) 
+	ret
+;-----------------------------------------------------------------------------------------------------------------------------
 LEDdriver:
+	push r27
+	push r25
+	push r16
+	cpi r25, 1
+	brne LED_other_signal
+;following part testes how many diodes should be turn on
+	subi r27, 10
+	sbi portd, 7 ;10% 
+	subi r27, 15 ;if duty cycle is less than 25%, than result is negative
+	brmi LED_done
+	sbi portc, 0
+	subi r27, 15 ;if duty cycle is less than 40%, than result is negative 
+	brmi LED_done
+	sbi portc, 1
+	subi r27, 10 ;if duty cycle is less than 50%, than result is negative 
+	brmi LED_done
+	sbi portc, 2
+	subi r27, 10 ;if duty cycle is less than 60%, than result is negative 
+	brmi LED_done
+	sbi portc, 3
+	subi r27, 15 ;if duty cycle is less than 75%, than result is negative 
+	brmi LED_done
+	sbi portc, 4
+	subi r27, 15 ;if duty cycle is less than 90%, than result is negative 
+	brmi LED_done
+	sbi portc, 5
+	rjmp LED_done
+LED_other_signal:
+	ldi r16, 0b11000000 ; we have to prevent reseting (PC6)
+	out portc, r16
+	cbi portd, 7 ;Led10%
+	rjmp LED_done
+LED_done:
+	pop r16
+	pop r25
+	pop r27
+	ret
 
 ;-----------------------------------------------------------------------------------------------------------------------------
 
