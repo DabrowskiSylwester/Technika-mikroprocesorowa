@@ -1,3 +1,5 @@
+PD6 is output of PWM signal
+
 The LEDs controll occurus from bottom to top of the board. Collors of the connectors are the same as collors of LEDs
 
 	Duty cylce
@@ -7,7 +9,7 @@ The LEDs controll occurus from bottom to top of the board. Collors of the connec
 	50% PC2 RED
 	40% PC1	YELLOW
 	25% PC0 GREEN
-	10% VCC	BLUE
+	10% PD7 BLUE
 
 
 Setting of button in proto board:

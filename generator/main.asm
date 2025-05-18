@@ -50,17 +50,18 @@ prog_start:
 	out portd, r16
 	;allocation and default set of control registers:
 	ldi r25, 1 ; r25 is a register for type of signal: default 1-PWM, 2-sine, 3-triang 
-	ldi r26, 4 ; r26 is a register for frequency (default 488 Hz)
+	;ldi r26, 4 ; r26 is a register for frequency (default 488 Hz)
+	ldi r26, 1 ; r26 is a register for frequency (debugging set)
 	ldi r27, 50 ; r27 is a register for duty cycle (default 50%)
 	ldi r28, 5 ; r28 is a register for step of changing duty cycle 
 	ldi r16, 1;
 	mov r2, r16;
-	eor r1, r1; r1 is a register for interrupt controll (it is set, when iterrupt occured)
+	eor r1, r1; r1 is a register for interrupt controll (bit0 is set, when iterrupt occured)
 	;Interrupt enable (external interrupt from PD2 triggered by raising edge):
 	ldi r16, (1<<int0)
-	out eimsk, r20
+	out eimsk, r16
 	ldi r16, (1<<isc01)|(1<<isc00)
-	sts eicra, r20
+	sts eicra, r16
 	rjmp PWM ; jump to default signal
 
 ;-----------------------------------------------------------------------------------------------------------------------------
@@ -80,43 +81,44 @@ cm_loop:
 	call LEDdriver
 	; check if button is pressed
 cm_signal:
-	sbis portd, 3 
+	sbis pind, 3 
 	inc r25
 	cpi r25, 4 ; if greater than 3 load 1 
 	brne cm_freq 
 	ldi r25, 1
 cm_freq:
-	sbis portd, 0
+	sbis pind, 0
 	inc r26
 	cpi r26, 6 ; if greater than 5 load 1
 	brne cm_freq_dec
 	ldi r26, 1
 cm_freq_dec: 
-	sbis portd, 1
+	sbis pind, 1
 	dec r26 
 	brne cm_dc ; if less than 1 load 5
 	ldi r26, 5 	
 cm_dc:
-	sbis portd, 4
+	sbis pind, 4
 	add r27, r28
 	cpi r27, 95 ; if greater than 90 load 10
 	brne cm_dc_dec
 	ldi r27, 10
 cm_dc_dec:
-	sbis portd, 5
+	sbis pind, 5
 	sub r27, r28
 	cpi r27, 5 ; if less than 10 load 90
 	brne cm_if_done 
 	ldi r27, 90
 cm_if_done:
-	sbis portd, 2 ; if it is pressed exit cm_loop
+	sbis pind, 2 ; if it is pressed exit cm_loop
 	rjmp cm_done
-	call delay_20ms ; delay should prevent user from reading the button twice
+	call delay_200ms ; delay should prevent user from reading the button twice
 	rjmp cm_loop ; otherwise return to begining
 cm_done: 
 	call display
 	call LEDdriver 
 	mov r1, r2 ; set 'private interrupt flag'
+	call delay_200ms
 	reti
 
 ;-----------------------------------------------------------------------------------------------------------------------------
@@ -363,6 +365,9 @@ LEDdriver:
 	push r27
 	push r25
 	push r16
+	cbi portd, 7
+	ldi r16, 0x00
+	out portc, r16
 	cpi r25, 1
 	brne LED_other_signal
 ;following part testes how many diodes should be turn on
@@ -431,6 +436,24 @@ loop20ms2: dec r18
 	dec r17
 	brne loop20ms1
 	
+	pop r18
+	pop r17
+	ret
+;-----------------------------------------------------------------------------------------------------------------------------
+delay_200ms: ;assumption clock 1MHz
+	push r17
+	push r18
+	push r19
+	ldi r17, 255
+loop200ms1: ldi r18, 255
+loop200ms2: ldi r19,15
+loop200ms3: dec r19
+	brne loop200ms3
+	dec r18
+	brne loop200ms2
+	dec r17
+	brne loop200ms1
+	pop r19
 	pop r18
 	pop r17
 	ret
