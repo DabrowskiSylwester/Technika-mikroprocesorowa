@@ -11,7 +11,7 @@
 ;DEFINITION OF INTERUPTS:
 .org 0x00
 	rjmp prog_start
-.org INT0addr
+.org 0x02
 	rjmp control_mode
 
 
@@ -36,10 +36,10 @@ prog_start:
 	ldi r16, 0x0f
 	out ddre, r16
 	; portC diodes for duty cycle display (last is connected to VCC)
-	ldi r16, 0x3f
+	ldi r16, 0b00111111
 	out ddrc, r16
 	;special setting for portD
-	;PD6 - outout of waveform generator
+	;PD6 - output of waveform generator
 	;keybord:
 	;PD2 - INT0 button
 	;PD0-PD5 is all we needed
@@ -50,18 +50,23 @@ prog_start:
 	out portd, r16
 	;allocation and default set of control registers:
 	ldi r25, 1 ; r25 is a register for type of signal: default 1-PWM, 2-sine, 3-triang 
-	;ldi r26, 4 ; r26 is a register for frequency (default 488 Hz)
-	ldi r26, 1 ; r26 is a register for frequency (debugging set)
+	ldi r26, 4 ; r26 is a register for frequency (default 488 Hz)
+	;ldi r26, 1 ; r26 is a register for frequency (debugging set)
 	ldi r27, 50 ; r27 is a register for duty cycle (default 50%)
 	ldi r28, 5 ; r28 is a register for step of changing duty cycle 
 	ldi r16, 1;
 	mov r2, r16;
 	eor r1, r1; r1 is a register for interrupt controll (bit0 is set, when iterrupt occured)
 	;Interrupt enable (external interrupt from PD2 triggered by raising edge):
-	ldi r16, (1<<int0)
+	ldi r16, 0b00000001
 	out eimsk, r16
-	ldi r16, (1<<isc01)|(1<<isc00)
+	ldi r16, 0b00000010
 	sts eicra, r16
+	;Clock select Clk_io = 1MHz
+	ldi r16, 0b10000000
+	sts CLKPR, r16
+	ldi r16, 0b00000100
+	sts CLKPR, r16
 	rjmp PWM ; jump to default signal
 
 ;-----------------------------------------------------------------------------------------------------------------------------
@@ -156,7 +161,7 @@ PWM:
 ; if TCNT0 == OCR0A then output is cleared. 
 ; OCR0A have to be set as time_on in first cycle and time_off in second. 
 ; We can take signal from waveform generator -> OC0A = PD6 
-	sei
+
 	;enter fast PWM mode:
 	ldi r16, 0b10000011 ;COM0A 10 COM0B 00 WGM0[1:0] 11
 	out TCCR0A, r16
@@ -164,8 +169,10 @@ PWM:
 	call PWMfreq
 	;decoding duty cycle setting :
 	call PWMduty
+	call LEDdriver
 PWM_working:
-
+	sei
+	call display
 ;mode checking:
 	cp r1, r2 ; check if interrupt has occured
 	brne PWM_working ; if not continue your normal work
@@ -216,6 +223,8 @@ triang_working:
 	rjmp triang_working
 ;-----------------------------------------------------------------------------------------------------------------------------
 PWMfreq:
+	push r16
+	push r26
 	;ldi r16, 0b00000001 ; 0000-obligatory WGMO[2] 0 CS0 [2:0] depends on frequency
 	;out TCCR0B, r16
 PWMfreq1: ;3.8Hz N=1024
@@ -223,131 +232,140 @@ PWMfreq1: ;3.8Hz N=1024
 	brne PWMfreq2 ;if not branch to mod 2
 	ldi r16, 0b00000101 ;select prescaler
 	out TCCR0B, r16
-	ret
+	rjmp PWMfreqdone
 PWMfreq2: ;15.3Hz, N=256
 	cpi r26, 2 ;check if selected frequency is mode 2
 	brne PWMfreq3 ;if not branch to mod 3
 	ldi r16, 0b00000100 ;select prescaler
 	out TCCR0B, r16
-	ret
+	rjmp PWMfreqdone
 PWMfreq3: ; 61Hz, N=64
 	cpi r26, 3 ;check if selected frequency is mode 3
 	brne PWMfreq4 ;if not branch to mod 4
 	ldi r16, 0b00000011 ;select prescaler
 	out TCCR0B, r16
-	ret
+	rjmp PWMfreqdone
 PWMfreq4: ; 488Hz, N=8
 	cpi r26, 4 ;check if selected frequency is mode 4
 	brne PWMfreq5 ;if not branch to mod 5
 	ldi r16, 0b00000010 ;select prescaler
 	out TCCR0B, r16
-	ret
+	rjmp PWMfreqdone
 PWMfreq5: ; 3.9kHz, N=1
 	ldi r16, 0b00000001 ;select prescaler
 	out TCCR0B, r16
+PWMfreqdone:
+	pop r26
+	pop r16
 	ret
 ;-----------------------------------------------------------------------------------------------------------------------------
 PWMduty:
+	push r16
+	push r27
 	;duty cycle can be choosen from following series: 10% to 90% with step of 5%
 PWMduty10:	
 	cpi r27, 10 ;check if duty cycle equals to 10%
 	brne PWMduty15 ; if not go to 15%
 	ldi r16, 26 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty15:	
 	cpi r27, 15 ;check if duty cycle equals to 15%
 	brne PWMduty20 ; if not go to 20%
 	ldi r16, 38 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty20:	
 	cpi r27, 20 ;check if duty cycle equals to 20%
 	brne PWMduty25 ; if not go to 25%
 	ldi r16, 51 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty25:	
 	cpi r27, 25 ;check if duty cycle equals to 25%
 	brne PWMduty30 ; if not go to 30%
 	ldi r16, 64 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty30:	
 	cpi r27, 30 ;check if duty cycle equals to 30%
 	brne PWMduty35 ; if not go to 35%
 	ldi r16, 77 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty35:	
 	cpi r27, 35 ;check if duty cycle equals to 35%
 	brne PWMduty40 ; if not go to 40%
 	ldi r16, 90 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty40:	
 	cpi r27, 40 ;check if duty cycle equals to 40%
 	brne PWMduty45 ; if not go to 45%
 	ldi r16, 102 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty45:	
 	cpi r27, 45 ;check if duty cycle equals to 45%
 	brne PWMduty50 ; if not go to 50%
 	ldi r16, 115 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty50:	
 	cpi r27, 50 ;check if duty cycle equals to 50%
 	brne PWMduty55 ; if not go to 55%
 	ldi r16, 128 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty55:	
 	cpi r27, 55;check if duty cycle equals to 55%
 	brne PWMduty60 ; if not go to 60%
 	ldi r16, 141 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty60:	
 	cpi r27, 60 ;check if duty cycle equals to 60%
 	brne PWMduty65 ; if not go to 65%
 	ldi r16, 154 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty65:	
 	cpi r27, 65 ;check if duty cycle equals to 65%
 	brne PWMduty70 ; if not go to 70%
 	ldi r16, 166 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty70:	
 	cpi r27, 70 ;check if duty cycle equals to 70%
 	brne PWMduty75 ; if not go to 75%
 	ldi r16, 179 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty75:	
 	cpi r27, 75 ;check if duty cycle equals to 75%
 	brne PWMduty80 ; if not go to 80%
 	ldi r16, 192 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty80:	
 	cpi r27, 80 ;check if duty cycle equals to 80%
 	brne PWMduty85 ; if not go to 85%
 	ldi r16, 205 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty85:	
 	cpi r27, 85 ;check if duty cycle equals to 85%
 	brne PWMduty90 ; if not go to 90%
 	ldi r16, 218 
 	out OCR0A, r16
-	ret
+	rjmp PWMdutydone
 PWMduty90:	
 	ldi r16, 230
 	out OCR0A, r16
+	
+PWMdutydone:
+	pop r27
+	pop r16
 	ret
 ;-----------------------------------------------------------------------------------------------------------------------------
 

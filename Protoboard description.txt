@@ -27,12 +27,12 @@ Setting of button in proto board:
 
 10
    PD4+
-   ****
+   ****		+
    PD4-
-
+		Duty cycle
 15
    PD5+
-   ****
+   ****		-
    PD5-
 
 20
@@ -46,12 +46,16 @@ Setting of button in proto board:
 
 
 30 PD0+
-   ****
+   ****		+
    PD0-
-
+		frequency
    PD1+
-35 ****
+35 ****		_
    PD1-
+
+
+40
+
 
 
 
@@ -61,11 +65,11 @@ Setting of button in proto board:
 
 
 50  PD3+
-    ****
+    ****	signal mode
     PD3-
 
     PD2+
-55  ****
+55  ****	interupt
     PD2-
 
 
