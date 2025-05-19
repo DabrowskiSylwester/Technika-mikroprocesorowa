@@ -3,7 +3,6 @@ Build started.
 Project "generator.asmproj" (default targets):
 Target "PreBuildEvent" skipped, due to false condition; ('$(PreBuildEvent)'!='') was evaluated as (''!='').
 Target "CoreBuild" in file "C:\Program Files (x86)\Atmel\Studio\7.0\Vs\Assembler.targets" from project "C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\generator.asmproj" (target "Build" depends on it):
-	Using "RunAssemblerTask" task from assembly "C:\Program Files (x86)\Atmel\Studio\7.0\Extensions\Application\AvrAssembler.dll".
 	Task "RunAssemblerTask"
 		C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\avrasm2.exe -fI -o "generator.hex"  -m "generator.map"  -l "generator.lss"  -S "generator.tmp"  -W+ie -I"C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc"  -im328PBdef.inc -d "C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\Debug\generator.obj"  "C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm"  -I "C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include" 
 		AVRASM: AVR macro assembler 2.2.8 (build 80 Jan 14 2020 18:27:50)
@@ -15,7 +14,7 @@ Target "CoreBuild" in file "C:\Program Files (x86)\Atmel\Studio\7.0\Vs\Assembler
 		"ATmega328PB" memory use summary [bytes]:
 		Segment   Begin    End      Code   Data   Used    Size   Use%
 		---------------------------------------------------------------
-		[.cseg] 0x000000 0x000424    552     16    568   32768   1.7%
+		[.cseg] 0x000000 0x0004b4    696     48    744   32768   2.3%
 		[.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 		[.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 		Assembly complete, 0 errors. 0 warnings

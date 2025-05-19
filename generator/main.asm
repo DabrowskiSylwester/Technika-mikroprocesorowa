@@ -12,13 +12,17 @@
 .org 0x00
 	rjmp prog_start
 .org 0x02
-	rjmp control_mode
+	rjmp interrupt
 
 
 
 .org 0x60
 ;7seg decoder (digits are fine but we need new select system):
 sgm: .DB 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c,0x39, 0x5e, 0x79, 0x71
+
+;sine LUT:
+;sineLUT: .DB 127, 217, 254, 217, 127, 37, 1, 37
+sineLUT: .DB 127, 152, 176, 198, 217, 233, 244, 252, 254, 252, 244, 233, 217, 198, 176, 152, 127, 102, 78, 56, 37, 21, 10, 2, 1, 2, 10, 21, 37, 56, 78, 102
 
 ;-----------------------------------------------------------------------------------------------------------------------------
 .org 0x100
@@ -71,60 +75,16 @@ prog_start:
 
 ;-----------------------------------------------------------------------------------------------------------------------------
 
-control_mode:
-; Control mode is using 6 buttons:
-; PD2 - enter/exit control mode
-; PD3 - choose signal: PWM (display0: P), sine (S) or triangle (|-) 
-; PD0 - increase frequency (display1-3)
-; PD1 - decrease frequency (display1-3)
-; PD4 - increase duty cycle 
-; PD5 - decrease duty cycle [we can use diodes to display current duty cycle and change it 10:5:90]
-
+interrupt:
 	cli ;diseble interrupts
-cm_loop:
-	call display ; display current settings
-	call LEDdriver
-	; check if button is pressed
-cm_signal:
-	sbis pind, 3 
-	inc r25
-	cpi r25, 4 ; if greater than 3 load 1 
-	brne cm_freq 
-	ldi r25, 1
-cm_freq:
-	sbis pind, 0
-	inc r26
-	cpi r26, 6 ; if greater than 5 load 1
-	brne cm_freq_dec
-	ldi r26, 1
-cm_freq_dec: 
-	sbis pind, 1
-	dec r26 
-	brne cm_dc ; if less than 1 load 5
-	ldi r26, 5 	
-cm_dc:
-	sbis pind, 4
-	add r27, r28
-	cpi r27, 95 ; if greater than 90 load 10
-	brne cm_dc_dec
-	ldi r27, 10
-cm_dc_dec:
-	sbis pind, 5
-	sub r27, r28
-	cpi r27, 5 ; if less than 10 load 90
-	brne cm_if_done 
-	ldi r27, 90
-cm_if_done:
-	sbis pind, 2 ; if it is pressed exit cm_loop
-	rjmp cm_done
-	call delay_200ms ; delay should prevent user from reading the button twice
-	rjmp cm_loop ; otherwise return to begining
-cm_done: 
-	call display
-	call LEDdriver 
+	sbi portb, 0 ;debuging diode
+;interrupt_loop:	
+	;sbic pind, 3 ; check if button 3 is pressed
+	;rjmp interrupt_loop	
 	mov r1, r2 ; set 'private interrupt flag'
 	call delay_200ms
 	reti
+
 
 ;-----------------------------------------------------------------------------------------------------------------------------
 ;?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
@@ -170,58 +130,153 @@ PWM:
 	;decoding duty cycle setting :
 	call PWMduty
 	call LEDdriver
-PWM_working:
+	call delay_200ms
 	sei
+PWM_working:
 	call display
 ;mode checking:
 	cp r1, r2 ; check if interrupt has occured
 	brne PWM_working ; if not continue your normal work
-	eor r1, r1 ; clear 'private interrupt flag'
+	call control_mode
+check:
 	cpi r25, 1  ; if yes check what was changed (jump to proper signal-mode)
 	breq PWM
 	cpi r25, 2
 	breq sine
 	cpi r25, 3
 	breq triang
-	rjmp PWM_working
+	
 ;-----------------------------------------------------------------------------------------------------------------------------
 
 sine:
+	
+	call delay_200ms
 	sei
-	;code
-
+	ldi r26, 5 ;set PWM frequency to 3.9kHz
+	call PWMfreq
+	ldi r31, high(2*sineLUT) ;pointer to LUT
+	ldi r30, low(2*sineLUT)
+	ldi r17, 0 ; pointer offset
 sine_working:
+;working
+	ldi r30, low(2*sineLUT) ;reseting pointer
+	add r30, r17 ;offset
+	lpm r27, z ; z=r30+r31
+	;call PWMduty
+	out OCR0A, r27
+	call delay_sleep
+	inc r17
+	cpi r17, 31 ; check if offset stays in range
+	brne sine_mode_checking ; if yes continue
+	ldi r17, 0 ; if not reset offset
 ;mode checking:
+sine_mode_checking:
 	cp r1, r2 ; check if interrupt has occured
-	brne PWM_working ; if not continue your normal work
-	eor r1, r1 ; clear 'private interrupt flag'
+	brne sine_working ; if not continue your normal work
+	call control_mode
 	cpi r25, 1  ; if yes check what was changed (jump to proper signal-mode)
 	breq PWM
 	cpi r25, 2
 	breq sine
 	cpi r25, 3
 	breq triang
-	rjmp sine_working
 ;-----------------------------------------------------------------------------------------------------------------------------
 
 triang:
+	
+	call delay_200ms
 	sei
-	;code
+	ldi r26, 5 ;set PWM frequency to 3.9kHz
+	call PWMfreq
+	ldi r27, 0 ; 
 
-
-triang_working:
-;mode checking:
+	
+triang_working_pos:
 	cp r1, r2 ; check if interrupt has occured
-	brne PWM_working ; if not continue your normal work
-	eor r1, r1 ; clear 'private interrupt flag'
-	cpi r25, 1  ; if yes check what was changed (jump to proper signal-mode)
-	breq PWM
-	cpi r25, 2
-	breq sine
-	cpi r25, 3
-	breq triang
-	rjmp triang_working
+	breq triang_mode_checking ; 
+	out OCR0A, r27
+	call delay_sleep
+	add r17, r28 ; add 5 to duty cycle
+	cpi r17, 255 ; check if offset stays in range
+	brne triang_working_pos
+
+triang_working_neg:	
+	cp r1, r2 ; check if interrupt has occured
+	breq triang_mode_checking ; 
+	ldi r18, 0; if 1 pos, if 0 neg
+	out OCR0A, r27
+	call delay_sleep
+	sub r17, r28 ; add 5 to duty cycle
+	cpi r17, 0 ; check if offset stays in range
+	brne triang_working_neg
+	ldi r17, 0 ; if not reset offset
+
+;mode checking:
+triang_mode_checking:
+	call control_mode
+	jmp check
+	
 ;-----------------------------------------------------------------------------------------------------------------------------
+
+control_mode:
+; Control mode is using 6 buttons:
+; PD2 - enter/exit control mode
+; PD3 - choose signal: PWM (display0: P), sine (S) or triangle (|-) 
+; PD0 - increase frequency (display1-3)
+; PD1 - decrease frequency (display1-3)
+; PD4 - increase duty cycle 
+; PD5 - decrease duty cycle [we can use diodes to display current duty cycle and change it 10:5:90]
+
+	cli ;diseble interrupts
+	eor r1, r1
+cm_loop:
+	
+	call display ; display current settings
+	call LEDdriver
+	; check if button is pressed
+cm_signal:
+	sbis pind, 3 
+	inc r25
+	cpi r25, 4 ; if greater than 3 load 1 
+	brne cm_freq 
+	ldi r25, 1
+cm_freq:
+	sbis pind, 0
+	inc r26
+	cpi r26, 6 ; if greater than 5 load 1
+	brne cm_freq_dec
+	ldi r26, 1
+cm_freq_dec: 
+	sbis pind, 1
+	dec r26 
+	brne cm_dc ; if less than 1 load 5
+	ldi r26, 5 	
+cm_dc:
+	sbis pind, 4
+	add r27, r28
+	cpi r27, 95 ; if greater than 90 load 10
+	brne cm_dc_dec
+	ldi r27, 10
+cm_dc_dec:
+	sbis pind, 5
+	sub r27, r28
+	cpi r27, 5 ; if less than 10 load 90
+	brne cm_if_done 
+	ldi r27, 90
+cm_if_done:
+	sbis pind, 2 ; if it is pressed exit cm_loop
+	rjmp cm_done
+	call delay_200ms ; delay should prevent user from reading the button twice
+	rjmp cm_loop ; otherwise return to begining
+cm_done: 
+	call display
+	call LEDdriver 
+	;call delay_200ms
+	cbi portb, 0
+	ret
+;-----------------------------------------------------------------------------------------------------------------------------
+
+
 PWMfreq:
 	push r16
 	push r26
@@ -423,13 +478,13 @@ LED_done:
 
 ;-----------------------------------------------------------------------------------------------------------------------------
 
-delay_1s: ;assumption clock 8MHz
+delay_1s: ;assumption clock 1MHz
 	push r17
 	push r18
 	push r19
 	ldi r17, 255
 loop1s1: ldi r18, 255
-loop1s2: ldi r19,110
+loop1s2: ldi r19,15
 loop1s3: dec r19
 	brne loop1s3
 	dec r18
@@ -441,37 +496,29 @@ loop1s3: dec r19
 	pop r17
 	ret
 
-delay_20ms: 
-	;1Mhz -> 100*100*2 ~ 20 ms
-	; it is not precise
-	push r17
-	push r18
+delay_sleep: 
 	
-	ldi r17, 100
-loop20ms1: ldi r18, 100
-loop20ms2: dec r18
-	brne loop20ms2
+	push r17
+	ldi r17, 81
+	;ldi r17, 219
+loop20ms1: 
 	dec r17
 	brne loop20ms1
-	
-	pop r18
 	pop r17
 	ret
 ;-----------------------------------------------------------------------------------------------------------------------------
 delay_200ms: ;assumption clock 1MHz
 	push r17
 	push r18
-	push r19
+	
 	ldi r17, 255
 loop200ms1: ldi r18, 255
-loop200ms2: ldi r19,15
-loop200ms3: dec r19
-	brne loop200ms3
-	dec r18
+loop200ms2: dec r18
 	brne loop200ms2
 	dec r17
 	brne loop200ms1
-	pop r19
+	
+	
 	pop r18
 	pop r17
 	ret
