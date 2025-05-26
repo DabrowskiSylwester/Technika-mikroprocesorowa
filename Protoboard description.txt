@@ -10,6 +10,23 @@ The LEDs controll occurus from bottom to top of the board. Collors of the connec
 	40% PC1	YELLOW
 	25% PC0 GREEN
 	10% PD7 BLUE
+					Frequency:
+if freq_mode is 1 = red only		RGB diode 
+if freq_mode is 2 = green only		PE0 RED
+if freq_mode is 3 = blue only		PE1 GREEN
+if freq_mode is 4 = blue+green		PE2 BLUE
+if freq_mode is 5 = blue+red
+
+					Control mode:
+					PB0
+		
+
+
+
+	Signal form:
+	TRIANG	PB3
+	SINE	PB2
+	PWM	PB1
 
 
 Setting of button in proto board:

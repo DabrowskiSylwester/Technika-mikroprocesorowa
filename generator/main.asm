@@ -1,8 +1,13 @@
-; Authors: Oskar Herman, Sylwester D¹browski
+; Authors: Oskar Herman, Sylwester Dabrowski
 ; Project for Microprocessor thechnics class at AGH University of Krakow
 ; Summer semester of 2025
 ; 
-; Description : bla bla bla 
+; Description : The program provides a function generator in 3 modes (PWM, sine and triang wave formes) 
+;				using PWM and RC filter.  
+;				In PWM mode it is possible to choose frequency and duty cycle.
+;				In sine and triang mode they are given
+;				To control fuctionalities user should use control panel implemented on protoboard 
+;				(description in file "Protoboard description.txt")
 
 ;-----------------------------------------------------------------------------------------------------------------------------
 
@@ -17,13 +22,11 @@
 
 
 .org 0x60
-;7seg decoder (digits are fine but we need new select system):
-sgm: .DB 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c,0x39, 0x5e, 0x79, 0x71
-
 ;sine LUT:
 ;sineLUT: .DB 127, 217, 254, 217, 127, 37, 1, 37
 sineLUT: .DB 127, 152, 176, 198, 217, 233, 244, 252, 254, 252, 244, 233, 217, 198, 176, 152, 127, 102, 78, 56, 37, 21, 10, 2, 1, 2, 10, 21, 37, 56, 78, 102
-
+;.org 0x80
+;triangLUT: .DB 1, 17, 33, 49, 65, 80, 96, 112, 128, 144, 160, 176, 192, 207, 223, 239, 255, 239, 223, 207, 192, 176, 160, 144, 128, 112, 96, 80, 65, 49, 33, 17
 ;-----------------------------------------------------------------------------------------------------------------------------
 .org 0x100
 
@@ -33,12 +36,13 @@ prog_start:
 	out sph, r16
 	ldi r16, low(ramend)
 	out spl, r16
-	;We can use portB for 7seg display (port D is needed for waveform generator).
+	;We can use portB for mode state display (port D is needed for waveform generator).
 	ldi r16, 0xff
 	out ddrb, r16
-	; and portE for selection of display
+	; and portE for frequency display
 	ldi r16, 0x0f
 	out ddre, r16
+	out porte, r16 ; default ones (common anode RGB)
 	; portC diodes for duty cycle display (last is connected to VCC)
 	ldi r16, 0b00111111
 	out ddrc, r16
@@ -85,15 +89,6 @@ interrupt:
 	call delay_200ms
 	reti
 
-
-;-----------------------------------------------------------------------------------------------------------------------------
-;?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-;In every place when we expect interupts do we have to call fuction, that check in which mode should work?
-;???????It is necessary, becouse we have to use reti to be done with interrupt and reti will send us to last.
-;We have to check it. If there were option to ignore reti, it would be better.
-;We can simply enable interupts after jump to proper mode.?????????????????? 
-;?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-;ANSWER Miko³aj Krysiak: stos siê wam rozwali!
 ;-----------------------------------------------------------------------------------------------------------------------------
 
 ; Clock system
@@ -130,10 +125,11 @@ PWM:
 	;decoding duty cycle setting :
 	call PWMduty
 	call LEDdriver
+	call display
 	call delay_200ms
 ; Solution of problem with double interrupt:
-  ldi r16, 1
- out EIFR, r16
+	ldi r16, 1
+	 out EIFR, r16
 	sei
 PWM_working:
 	call display
@@ -152,10 +148,12 @@ check:
 ;-----------------------------------------------------------------------------------------------------------------------------
 
 sine:
-	
+	; Sine is using Look-up Table, which stores values of PWM duty cycles. 
+	; PWM signal is integrated in RC filter, what provide approximate sinusoid.
+
 	call delay_200ms
-ldi r16, 1
- out EIFR, r16
+	ldi r16, 1
+	out EIFR, r16
 	sei
 	ldi r26, 5 ;set PWM frequency to 3.9kHz
 	call PWMfreq
@@ -178,6 +176,7 @@ sine_working:
 sine_mode_checking:
 	cp r1, r2 ; check if interrupt has occured
 	brne sine_working ; if not continue your normal work
+	ldi r27, 50; default PWM duty cycle
 	call control_mode
 	cpi r25, 1  ; if yes check what was changed (jump to proper signal-mode)
 	breq PWM
@@ -188,40 +187,31 @@ sine_mode_checking:
 ;-----------------------------------------------------------------------------------------------------------------------------
 
 triang:
+	; triang is using simple integration in RC filter.
+
+	ldi r16, 0b10000011 ;COM0A 10 COM0B 00 WGM0[1:0] 11
+	out TCCR0A, r16
 	
-	call delay_200ms
-ldi r16, 1
- out EIFR, r16
-	sei
-	ldi r26, 5 ;set PWM frequency to 3.9kHz
+	ldi r26, 4 ;set PWM freq
+	ldi r27, 50;and duty cycle
 	call PWMfreq
-	ldi r27, 0 ; 
-
-	
-triang_working_pos:
-	cp r1, r2 ; check if interrupt has occured
-	breq triang_mode_checking ; 
-	out OCR0A, r27
-	call delay_sleep
-	add r17, r28 ; add 5 to duty cycle
-	cpi r17, 255 ; check if offset stays in range
-	brne triang_working_pos
-
-triang_working_neg:	
-	cp r1, r2 ; check if interrupt has occured
-	breq triang_mode_checking ; 
-	ldi r18, 0; if 1 pos, if 0 neg
-	out OCR0A, r27
-	call delay_sleep
-	sub r17, r28 ; add 5 to duty cycle
-	cpi r17, 0 ; check if offset stays in range
-	brne triang_working_neg
-	ldi r17, 0 ; if not reset offset
-
+	call PWMduty
+	call LEDdriver
+	call display
+	call delay_200ms
+; Solution of problem with double interrupt:
+	ldi r16, 1
+	 out EIFR, r16
+	sei
+triang_working:
+	call display
 ;mode checking:
-triang_mode_checking:
+	cp r1, r2 ; check if interrupt has occured
+	brne triang_working ; if not continue your normal work
 	call control_mode
-	jmp check
+check_triang:
+	jmp check ; relatice branch out of reach ;(
+
 	
 ;-----------------------------------------------------------------------------------------------------------------------------
 
@@ -236,6 +226,7 @@ control_mode:
 
 	cli ;diseble interrupts
 	eor r1, r1
+	
 cm_loop:
 	
 	call display ; display current settings
@@ -256,6 +247,7 @@ cm_freq:
 cm_freq_dec: 
 	sbis pind, 1
 	dec r26 
+	cpi r26, 0
 	brne cm_dc ; if less than 1 load 5
 	ldi r26, 5 	
 cm_dc:
@@ -439,10 +431,30 @@ PWMdutydone:
 display:
 ; We need display modulus, but it cannot work in hex - it will be annoying .
 ; It should be no problem with it - we use "a frequency code", so we can translete into in more human way ;) 
+	push r25
+	;reseting
+	cbi portb, 1 
+	cbi portb, 2
+	cbi portb, 3
+	cpi r25, 1 ;check if PWM
+	brne display_sine
+	sbi portb, 1
+	rjmp display_done
+display_sine:
+	cpi r25, 2 ;check if sine
+	brne display_triang
+	sbi portb, 2
+	rjmp display_done
+display_triang:
+	sbi portb, 3 ;if all fails, triang
+display_done:	
+	
+	pop r25
 	ret
 ;-----------------------------------------------------------------------------------------------------------------------------
 LEDdriver:
 	push r27
+	push r26
 	push r25
 	push r16
 	cbi portd, 7
@@ -454,32 +466,65 @@ LEDdriver:
 	subi r27, 10
 	sbi portd, 7 ;10% 
 	subi r27, 15 ;if duty cycle is less than 25%, than result is negative
-	brmi LED_done
+	brmi LED_freq1
 	sbi portc, 0
 	subi r27, 15 ;if duty cycle is less than 40%, than result is negative 
-	brmi LED_done
+	brmi LED_freq1
 	sbi portc, 1
 	subi r27, 10 ;if duty cycle is less than 50%, than result is negative 
-	brmi LED_done
+	brmi LED_freq1
 	sbi portc, 2
 	subi r27, 10 ;if duty cycle is less than 60%, than result is negative 
-	brmi LED_done
+	brmi LED_freq1
 	sbi portc, 3
 	subi r27, 15 ;if duty cycle is less than 75%, than result is negative 
-	brmi LED_done
+	brmi LED_freq1
 	sbi portc, 4
 	subi r27, 15 ;if duty cycle is less than 90%, than result is negative 
-	brmi LED_done
+	brmi LED_freq1
 	sbi portc, 5
+	
+LED_freq1:
+	cpi r26, 1 ;check if frequency is 1
+	brne LED_freq2 ; 
+	ldi r16, 0b00000110 ;red only 
+	out porte, r16
+	rjmp LED_done
+LED_freq2:
+	cpi r26, 2 ;check if frequency is 2
+	brne LED_freq3 ; 
+	ldi r16, 0b00000101 ;green only 
+	out porte, r16
+	rjmp LED_done
+LED_freq3:
+	cpi r26, 3 ;check if frequency is 3
+	brne LED_freq4 ; 
+	ldi r16, 0b00000011 ;blue only 
+	out porte, r16
+	rjmp LED_done
+LED_freq4:
+	cpi r26, 4 ;check if frequency is 4
+	brne LED_freq5 ; 
+	ldi r16, 0b00000001 ;blue+green
+	out porte, r16
+	rjmp LED_done
+LED_freq5:
+	cpi r26, 5 ;check if frequency is 5
+	brne LED_freq5 ; 
+	ldi r16, 0b00000010 ;blue+red
+	out porte, r16
 	rjmp LED_done
 LED_other_signal:
 	ldi r16, 0b11000000 ; we have to prevent reseting (PC6)
 	out portc, r16
 	cbi portd, 7 ;Led10%
+	ldi r16, 0
+	out porte, r16 ; white
 	rjmp LED_done
 LED_done:
 	pop r16
 	pop r25
+	pop r26
 	pop r27
 	ret
 
@@ -502,12 +547,22 @@ loop1s3: dec r19
 	pop r18
 	pop r17
 	ret
+delay_sleep_triang: 
+	
+	push r17
+	ldi r17, 5 ;120Hz sine
+	;ldi r17, 219 ;48Hz sine
+loop20mstr1: 
+	dec r17
+	brne loop20mstr1
+	pop r17
+	ret
 
 delay_sleep: 
 	
 	push r17
-	ldi r17, 81
-	;ldi r17, 219
+	ldi r17, 81 ;120Hz sine
+	;ldi r17, 219 ;48Hz sine
 loop20ms1: 
 	dec r17
 	brne loop20ms1

@@ -8,13 +8,13 @@ Target "CoreBuild" in file "C:\Program Files (x86)\Atmel\Studio\7.0\Vs\Assembler
 		AVRASM: AVR macro assembler 2.2.8 (build 80 Jan 14 2020 18:27:50)
 		Copyright (C) 1995-2020 ATMEL Corporation
 		[builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
-		C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
+		C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(14): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
 		[builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
-		C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
+		C:\Mikroprocesory\git\Technika-mikroprocesorowa\generator\main.asm(14): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328PBdef.inc'
 		"ATmega328PB" memory use summary [bytes]:
 		Segment   Begin    End      Code   Data   Used    Size   Use%
 		---------------------------------------------------------------
-		[.cseg] 0x000000 0x0004b4    696     48    744   32768   2.3%
+		[.cseg] 0x000000 0x00051e    802     32    834   32768   2.5%
 		[.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 		[.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 		Assembly complete, 0 errors. 0 warnings
